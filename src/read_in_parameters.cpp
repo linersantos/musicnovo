@@ -28,7 +28,7 @@ InitData read_in_parameters(std::string input_file) {
     if (tempinput != "empty") istringstream(tempinput) >> tempInitial_profile;
     parameter_list.Initial_profile = tempInitial_profile;
 
-    // Initial_profile: 
+    // Initial_profile:
     int temp_string_dump_mode = 1;
     tempinput = Util::StringFind4(input_file, "string_dump_mode");
     if (tempinput != "empty")
@@ -93,7 +93,7 @@ InitData read_in_parameters(std::string input_file) {
         istringstream(tempinput) >> tempinitializeEntropy;
     parameter_list.initializeEntropy = tempinitializeEntropy;
 
-    //use_eps_for_freeze_out: 
+    //use_eps_for_freeze_out:
     // 0: freeze out at constant temperature T_freeze
     // 1: freeze out at constant energy density epsilon_freeze
     // if set in input input_file, overide above defaults
@@ -176,7 +176,7 @@ InitData read_in_parameters(std::string input_file) {
         istringstream(tempinput) >> tempparticleSpectrumNumber;
     parameter_list.particleSpectrumNumber = tempparticleSpectrumNumber;
 
-    // mode: 
+    // mode:
     // 1: Does everything. Evolution. Computation of thermal spectra.
     //    Resonance decays. Observables.
     // 2: Evolution only.
@@ -208,7 +208,7 @@ InitData read_in_parameters(std::string input_file) {
     // 10: finite muB EOS from A. Monnai (up to mu_B^4)
     // 11: finite muB EOS from Pasi
     // 12: finite muB EOS from A. Monnai (up to mu_B^6)
-    int tempwhichEOS = 2;
+    int tempwhichEOS = 0;
     tempinput = Util::StringFind4(input_file, "EOS_to_use");
     if (tempinput != "empty")
         istringstream(tempinput) >> tempwhichEOS;
@@ -270,7 +270,7 @@ InitData read_in_parameters(std::string input_file) {
 
     // Grid_size_in_eta
     // number of cells in eta direction.
-    // One cell is positioned at eta=0, 
+    // One cell is positioned at eta=0,
     // half the cells are at negative eta,
     // the rest (one fewer) are at positive eta
     int tempneta = 1;
@@ -329,11 +329,11 @@ InitData read_in_parameters(std::string input_file) {
 
     /* x-grid, for instance, runs from 0 to nx */
     parameter_list.delta_x =
-            parameter_list.x_size/static_cast<double>(parameter_list.nx - 1); 
+            parameter_list.x_size/static_cast<double>(parameter_list.nx - 1);
     parameter_list.delta_y =
-            parameter_list.y_size/static_cast<double>(parameter_list.ny - 1); 
+            parameter_list.y_size/static_cast<double>(parameter_list.ny - 1);
     parameter_list.delta_eta =
-            parameter_list.eta_size/static_cast<double>(parameter_list.neta - 1); 
+            parameter_list.eta_size/static_cast<double>(parameter_list.neta - 1);
 
     music_message << " DeltaX = " << parameter_list.delta_x << " fm";
     music_message.flush("info");
@@ -342,7 +342,7 @@ InitData read_in_parameters(std::string input_file) {
     music_message << " DeltaETA = " << parameter_list.delta_eta;
     music_message.flush("info");
 
-    // Delta_Tau: 
+    // Delta_Tau:
     // time step to use in [fm].
     double tempdelta_tau = 0.02;
     tempinput = Util::StringFind4(input_file, "Delta_Tau");
@@ -352,7 +352,7 @@ InitData read_in_parameters(std::string input_file) {
     music_message << " DeltaTau = " << parameter_list.delta_tau << " fm";
     music_message.flush("info");
 
-    // output_evolution_data:  
+    // output_evolution_data:
     // 1: output bulk information at every grid point at every time step
     int tempoutputEvolutionData = 0;
     tempinput = Util::StringFind4(input_file, "output_evolution_data");
@@ -450,7 +450,7 @@ InitData read_in_parameters(std::string input_file) {
     tempinput = Util::StringFind4(input_file, "pseudo_steps");
     if (tempinput != "empty")
         istringstream(tempinput) >> temppseudo_steps;
-    parameter_list.pseudo_steps = temppseudo_steps; 
+    parameter_list.pseudo_steps = temppseudo_steps;
 
     // phi_steps
     // steps in azimuthal angle in calculation of spectra
@@ -458,7 +458,7 @@ InitData read_in_parameters(std::string input_file) {
     tempinput = Util::StringFind4(input_file, "phi_steps");
     if (tempinput != "empty")
         istringstream(tempinput) >> tempphi_steps  ;
-    parameter_list.phi_steps = tempphi_steps; 
+    parameter_list.phi_steps = tempphi_steps;
 
     // min_pt:
     // spectra calculated from this to max_pt transverse momentum in GeV
@@ -476,13 +476,66 @@ InitData read_in_parameters(std::string input_file) {
         istringstream(tempinput) >> tempmax_pt;
     parameter_list.max_pt = tempmax_pt;
 
+    double tempa1_ecc   = 0.0;
+    tempinput = Util::StringFind4(input_file, "a1_ecc");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> tempa1_ecc;
+    parameter_list.a1_ecc = tempa1_ecc;
+
+    double tempa2_ecc   = 0.1;
+    tempinput = Util::StringFind4(input_file, "a2_ecc");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> tempa2_ecc;
+    parameter_list.a2_ecc = tempa2_ecc;
+
+    double tempa3_ecc   = 0.1;
+    tempinput = Util::StringFind4(input_file, "a3_ecc");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> tempa3_ecc;
+    parameter_list.a3_ecc = tempa3_ecc;
+
+    double tempa4_ecc   = 0.1;
+    tempinput = Util::StringFind4(input_file, "a4_ecc");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> tempa4_ecc;
+    parameter_list.a4_ecc = tempa4_ecc;
+
+    double tempa5_ecc   = 0.1;
+    tempinput = Util::StringFind4(input_file, "a5_ecc");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> tempa5_ecc;
+    parameter_list.a5_ecc = tempa5_ecc;
+
+    double tempa6_ecc   = 0.1;
+    tempinput = Util::StringFind4(input_file, "a6_ecc");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> tempa6_ecc;
+    parameter_list.a6_ecc = tempa6_ecc;
+
+    double tempa7_ecc   = 0.1;
+    tempinput = Util::StringFind4(input_file, "a7_ecc");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> tempa7_ecc;
+    parameter_list.a7_ecc = tempa7_ecc;
+
+    double tempnorm_ecc   = 100.0;
+    tempinput = Util::StringFind4(input_file, "norm_ecc");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> tempnorm_ecc;
+    parameter_list.norm_ecc = tempnorm_ecc;
+    //constant from Wood-Saxon thickness function
+    double temprho0   = 0.160423;
+    tempinput = Util::StringFind4(input_file, "rho0");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> temprho0;
+    parameter_list.rho0 = temprho0;
     // pt_steps:
     // steps in transverse momentum in calculation of spectra
     int temppt_steps   = 60;
     tempinput = Util::StringFind4(input_file, "pt_steps");
     if (tempinput != "empty")
         istringstream(tempinput) >> temppt_steps  ;
-    parameter_list.pt_steps = temppt_steps;   
+    parameter_list.pt_steps = temppt_steps;
 
     // pseudofreeze
     // Calculate spectra at fixed,
@@ -541,7 +594,7 @@ InitData read_in_parameters(std::string input_file) {
     }
     parameter_list.shear_to_s = tempshear_to_s;
 
-    // If "T_dependent_Shear_to_S_ratio==2", 
+    // If "T_dependent_Shear_to_S_ratio==2",
     // (eta/s)(T) = eta_over_s_min + eta_over_s_slope*(T − Tc)*(T/Tc)^{eta_over_s_curv}
     // with T_c=0.154 GeV
     double temp_eta_over_s_min = 0.08;
@@ -563,7 +616,7 @@ InitData read_in_parameters(std::string input_file) {
     parameter_list.eta_over_s_curv = temp_eta_over_s_curv;
 
 
-    // If "T_dependent_Shear_to_S_ratio==3", 
+    // If "T_dependent_Shear_to_S_ratio==3",
     double temp_eta_over_s_T_kink_in_GeV = .16;
     tempinput = Util::StringFind4(input_file, "eta_over_s_T_kink_in_GeV");
     if (tempinput != "empty")
@@ -605,7 +658,7 @@ InitData read_in_parameters(std::string input_file) {
         istringstream(tempinput) >> tempT_dependent_bulk_to_s;
     parameter_list.T_dependent_bulk_to_s = tempT_dependent_bulk_to_s;
 
-    // "T_dependent_Bulk_to_S_ratio=2", 
+    // "T_dependent_Bulk_to_S_ratio=2",
     // bulk viscosity is parametrized as with "A", "G" and "Tc" as "A*(1/(1+((T-Tc)/G)^2)"
     double tempBulkViscosityNorm = 0.33;
     tempinput = Util::StringFind4(input_file, "bulk_viscosity_normalisation");
@@ -1090,7 +1143,7 @@ void check_parameters(InitData &parameter_list, std::string input_file) {
     }
 
     if (parameter_list.neta < 2 && !parameter_list.boost_invariant) {
-        music_message << "Grid size in eta = " << parameter_list.neta 
+        music_message << "Grid size in eta = " << parameter_list.neta
                       << "is too small for a (3+1)-d run! "
                       << "Please increase Grid_size_in_eta to be "
                       << "larger than 2 at least!";
@@ -1234,7 +1287,7 @@ void check_parameters(InitData &parameter_list, std::string input_file) {
     }
 
     if (parameter_list.dNdy_y_min > parameter_list.dNdy_y_max) {
-        music_message << "dNdy_y_min = " << parameter_list.dNdy_y_min << " < " 
+        music_message << "dNdy_y_min = " << parameter_list.dNdy_y_min << " < "
                       << "dNdy_y_max = " << parameter_list.dNdy_y_max << "!";
         music_message.flush("error");
         exit(1);
@@ -1242,7 +1295,7 @@ void check_parameters(InitData &parameter_list, std::string input_file) {
 
     if (parameter_list.dNdy_eta_min > parameter_list.dNdy_eta_max) {
         music_message << "dNdy_eta_min = " << parameter_list.dNdy_eta_min
-                      << " < " 
+                      << " < "
                       << "dNdy_eta_max = " << parameter_list.dNdy_eta_max
                       << "!";
         music_message.flush("error");
@@ -1251,7 +1304,7 @@ void check_parameters(InitData &parameter_list, std::string input_file) {
 
     if (parameter_list.dNdyptdpt_y_min > parameter_list.dNdyptdpt_y_max) {
         music_message << "dNdyptdpt_y_min = "
-                      << parameter_list.dNdyptdpt_y_min << " < " 
+                      << parameter_list.dNdyptdpt_y_min << " < "
                       << "dNdyptdpt_y_max = "
                       << parameter_list.dNdyptdpt_y_max << "!";
         music_message.flush("error");
@@ -1261,7 +1314,7 @@ void check_parameters(InitData &parameter_list, std::string input_file) {
     if (parameter_list.dNdyptdpt_eta_min
             > parameter_list.dNdyptdpt_eta_max) {
         music_message << "dNdyptdpt_eta_min = "
-                      << parameter_list.dNdyptdpt_eta_min << " < " 
+                      << parameter_list.dNdyptdpt_eta_min << " < "
                       << "dNdyptdpt_eta_max = "
                       << parameter_list.dNdyptdpt_eta_max << "!";
         music_message.flush("error");

@@ -1,0 +1,8 @@
+#!/bin/bash
+./compile
+rm -rf testando
+mkdir testando
+cd testando
+cp $HYDROPROGRAMPATH2/insample insample
+$HYDROPROGRAMPATH2/./MUSIChydro insample
+cd ../

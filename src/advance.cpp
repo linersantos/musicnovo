@@ -89,19 +89,19 @@ void Advance::FirstRKStepT(const double tau, double x_local, double y_local,
         double eta_s_local, SCGrid &arena_current, SCGrid &arena_future, SCGrid &arena_prev, int ix, int iy, int ieta, int rk_flag) {
     // this advances the ideal part
     double tau_rk = tau + rk_flag*(DATA.delta_tau);
-    
+
     // Solve partial_a T^{a mu} = -partial_a W^{a mu}
     // Update T^{mu nu}
-    
+
     // MakeDelatQI gets
     //   qi = q0 if rk_flag = 0 or
     //   qi = q0 + k1 if rk_flag = 1
-    // rhs[alpha] is what MakeDeltaQI outputs. 
+    // rhs[alpha] is what MakeDeltaQI outputs.
     // It is the spatial derivative part of partial_a T^{a mu}
     // (including geometric terms)
     TJbVec qi = {0};
     MakeDeltaQI(tau_rk, arena_current, ix, iy, ieta, qi, rk_flag);
-    
+
     TJbVec qi_source = {0.0};
 
     if (flag_add_hydro_source) {
@@ -123,9 +123,13 @@ void Advance::FirstRKStepT(const double tau, double x_local, double y_local,
     // now MakeWSource returns partial_a W^{a mu}
     // (including geometric terms)
     TJbVec dwmn ={0.0};
-    diss_helper.MakeWSource(tau_rk, arena_current, arena_prev, ix, iy, ieta,
-                            dwmn);
+    //diss_helper.MakeWSource(tau_rk, alpha, arena_current, arena_prev, ix, iy, ieta,
+      //                      dwmn);
     for (int alpha = 0; alpha < 5; alpha++) {
+
+
+      diss_helper.MakeWSource(tau_rk, alpha, arena_current, arena_prev, ix, iy, ieta,
+                              dwmn);
         /* dwmn is the only one with the minus sign */
         qi[alpha] -= dwmn[alpha]*(DATA.delta_tau);
 
@@ -141,15 +145,15 @@ void Advance::FirstRKStepT(const double tau, double x_local, double y_local,
         //        qi[alpha] = 0.;
         //}
 
-        /* if rk_flag > 0, we now have q0 + k1 + k2. 
+        /* if rk_flag > 0, we now have q0 + k1 + k2.
          * So add q0 and multiply by 1/2 */
         qi[alpha] += rk_flag*get_TJb(arena_prev(ix,iy,ieta), alpha, 0)*tau;
         qi[alpha] *= 1./(1. + rk_flag);
     }
- 
+
     double tau_next = tau + DATA.delta_tau;
     auto grid_rk_t = reconst_helper.ReconstIt_shell(
-                                tau_next, qi, arena_current(ix, iy, ieta)); 
+                                tau_next, qi, arena_current(ix, iy, ieta));
     UpdateTJbRK(grid_rk_t, arena_future(ix, iy, ieta));
 }
 
@@ -537,7 +541,7 @@ void Advance::MakeDeltaQI(const double tau, SCGrid &arena_current,
 }
 
 // determine the maximum signal propagation speed at the given direction
-double Advance::MaxSpeed(double tau, int direc, const ReconstCell &grid_p) {  
+double Advance::MaxSpeed(double tau, int direc, const ReconstCell &grid_p) {
     double g[] = {1., 1., 1./tau};
 
     double utau    = grid_p.u[0];

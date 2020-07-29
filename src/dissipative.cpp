@@ -12,7 +12,7 @@
 #include "dissipative.h"
 
 using Util::hbarc;
-
+using namespace std;
 Diss::Diss(const EOS &eosIn, const InitData &Data_in)
     : DATA(Data_in), eos(eosIn), minmod(Data_in),
       transport_coeffs_(eosIn, Data_in) {}
@@ -24,7 +24,7 @@ Diss::Diss(const EOS &eosIn, const InitData &Data_in)
 for everywhere else. also, this change is necessary
 to use Wmunu[rk_flag][4][mu] as the dissipative baryon current*/
 /* this is the only one that is being subtracted in the rhs */
-void Diss::MakeWSource(const double tau,
+void Diss::MakeWSource(const double tau, int alpha,
                        SCGrid &arena_current, SCGrid &arena_prev,
                        const int ix, const int iy, const int ieta,
                        TJbVec &dwmn) {
@@ -210,7 +210,7 @@ double Diss::Make_uWSource(double tau, Cell_small *grid_pt, Cell_small *grid_pt_
 
     /* This source has many terms */
     /* everything in the 1/(tau_pi) piece is here */
-    /* third step in the split-operator time evol 
+    /* third step in the split-operator time evol
        use Wmunu[rk_flag] and u[rk_flag] with rk_flag = 0 */
 
     ////////////////////////////////////////////////////////////////////////
@@ -392,18 +392,18 @@ int Diss::Make_uWRHS(double tau, SCGrid &arena, int ix, int iy, int ieta,
     auto Wmunu_local = Util::UnpackVecToMatrix(grid_pt.Wmunu);
 
     /* Kurganov-Tadmor for Wmunu */
-    /* implement 
-       partial_tau (utau Wmn) + (1/tau)partial_eta (ueta Wmn) 
-       + partial_x (ux Wmn) + partial_y (uy Wmn) + utau Wmn/tau = SW 
+    /* implement
+       partial_tau (utau Wmn) + (1/tau)partial_eta (ueta Wmn)
+       + partial_x (ux Wmn) + partial_y (uy Wmn) + utau Wmn/tau = SW
        or the right hand side of,
-       partial_tau (utau Wmn) = 
+       partial_tau (utau Wmn) =
                         - (1/tau)partial_eta (ueta Wmn)
-                        - partial_x (ux Wmn) - partial_y (uy Wmn) 
+                        - partial_x (ux Wmn) - partial_y (uy Wmn)
                         - utau Wmn/tau + SW*/
 
     /* the local velocity is just u_x/u_tau, u_y/u_tau, u_eta/tau/u_tau */
-    /* KT flux is given by 
-       H_{j+1/2} = (fRph + fLph)/2 - ax(uRph - uLph) 
+    /* KT flux is given by
+       H_{j+1/2} = (fRph + fLph)/2 - ax(uRph - uLph)
        Here fRph = ux WmnRph and ax uRph = |ux/utau|_max utau Wmn */
     /* This is the second step in the operator splitting. it uses
        rk_flag+1 as initial condition */
@@ -517,18 +517,18 @@ int Diss::Make_uPRHS(double tau, SCGrid &arena, int ix, int iy, int ieta,
     auto grid_pt = &(arena(ix, iy, ieta));
 
     /* Kurganov-Tadmor for Pi */
-    /* implement 
-      partial_tau (utau Pi) + (1/tau)partial_eta (ueta Pi) 
-      + partial_x (ux Pi) + partial_y (uy Pi) + utau Pi/tau = SP 
+    /* implement
+      partial_tau (utau Pi) + (1/tau)partial_eta (ueta Pi)
+      + partial_x (ux Pi) + partial_y (uy Pi) + utau Pi/tau = SP
       or the right hand side of
       partial_tau (utau Pi) = -
       (1/tau)partial_eta (ueta Pi) - partial_x (ux Pi) - partial_y (uy Pi)
-      - utau Pi/tau + SP 
+      - utau Pi/tau + SP
       */
 
     /* the local velocity is just u_x/u_tau, u_y/u_tau, u_eta/tau/u_tau */
-    /* KT flux is given by 
-       H_{j+1/2} = (fRph + fLph)/2 - ax(uRph - uLph) 
+    /* KT flux is given by
+       H_{j+1/2} = (fRph + fLph)/2 - ax(uRph - uLph)
        Here fRph = ux PiRph and ax uRph = |ux/utau|_max utau Pin */
 
     /* This is the second step in the operator splitting. it uses
@@ -609,7 +609,7 @@ int Diss::Make_uPRHS(double tau, SCGrid &arena, int ix, int iy, int ieta,
 }
 
 
-double Diss::Make_uPiSource(double tau, Cell_small *grid_pt, Cell_small *grid_pt_prev, 
+double Diss::Make_uPiSource(double tau, Cell_small *grid_pt, Cell_small *grid_pt_prev,
                         int rk_flag, double theta_local, VelocityShearVec &sigma_1d) {
     double tempf;
     double bulk;
@@ -640,7 +640,7 @@ double Diss::Make_uPiSource(double tau, Cell_small *grid_pt, Cell_small *grid_pt
 
     // shear viscosity = constant * entropy density
     //s_den = eos.get_entropy(epsilon, rhob);
-    //shear = (DATA.shear_to_s)*s_den;   
+    //shear = (DATA.shear_to_s)*s_den;
     // shear viscosity = constant * (e + P)/T
     double temperature = eos.get_temperature(epsilon, rhob);
 
@@ -735,8 +735,8 @@ double Diss::Make_uPiSource(double tau, Cell_small *grid_pt, Cell_small *grid_pt
 /* baryon current parts */
 /* this contains the source terms
    that is, all the terms that are not part of the current */
-/* for the q part, we don't do tau*u*q we just do u*q 
-   this part contains 
+/* for the q part, we don't do tau*u*q we just do u*q
+   this part contains
     -(1/tau_rho)(q[a] + kappa g[a][b]Dtildemu[b]
                  + kappa u[a] u[b]g[b][c]Dtildemu[c])
     +Delta[a][tau] u[eta] q[eta]/tau
@@ -778,7 +778,7 @@ double Diss::Make_uqSource(
         q[i] = grid_pt->Wmunu[10+i];
     }
 
-    /* -(1/tau_rho)(q[a] + kappa g[a][b]Dtildemu[b] 
+    /* -(1/tau_rho)(q[a] + kappa g[a][b]Dtildemu[b]
      *              + kappa u[a] u[b]g[b][c]Dtildemu[c])
      * + theta q[a] - q[a] u^\tau/tau
      * + Delta[a][tau] u[eta] q[eta]/tau
@@ -849,18 +849,18 @@ double Diss::Make_uqSource(
 double Diss::Make_uqRHS(double tau, SCGrid &arena, int ix, int iy, int ieta,
                         int mu, int nu) {
     /* Kurganov-Tadmor for q */
-    /* implement 
-      partial_tau (utau qmu) + (1/tau)partial_eta (ueta qmu) 
-      + partial_x (ux qmu) + partial_y (uy qmu) + utau qmu/tau = SW 
+    /* implement
+      partial_tau (utau qmu) + (1/tau)partial_eta (ueta qmu)
+      + partial_x (ux qmu) + partial_y (uy qmu) + utau qmu/tau = SW
     or the right hand side of,
-      partial_tau (utau qmu) = 
-      - (1/tau)partial_eta (ueta qmu) - partial_x (ux qmu) - partial_y (uy qmu) 
-      - utau qmu/tau 
+      partial_tau (utau qmu) =
+      - (1/tau)partial_eta (ueta qmu) - partial_x (ux qmu) - partial_y (uy qmu)
+      - utau qmu/tau
     */
 
     /* the local velocity is just u_x/u_tau, u_y/u_tau, u_eta/tau/u_tau */
-    /* KT flux is given by 
-       H_{j+1/2} = (fRph + fLph)/2 - ax(uRph - uLph) 
+    /* KT flux is given by
+       H_{j+1/2} = (fRph + fLph)/2 - ax(uRph - uLph)
        Here fRph = ux WmnRph and ax uRph = |ux/utau|_max utau Wmn */
 
     /* This is the second step in the operator splitting. it uses
@@ -923,15 +923,15 @@ double Diss::Make_uqRHS(double tau, SCGrid &arena, int ix, int iy, int ieta,
         sum += -HW;
     });
 
-    /* add a source term -u^tau Wmn/tau due to the coordinate 
+    /* add a source term -u^tau Wmn/tau due to the coordinate
      * change to tau-eta */
     /* Sangyong Nov 18 2014: don't need this. included in the uqSource. */
     /* this is from udW = d(uW) - Wdu = RHS */
     /* or d(uW) = udW + Wdu */
-    /* 
+    /*
      * sum -= (grid_pt->u[rk_flag][0])*(grid_pt->Wmunu[rk_flag][mu][nu])/tau;
      * sum += (grid_pt->theta_u[rk_flag])*(grid_pt->Wmunu[rk_flag][mu][nu]);
-    */  
+    */
     return(sum*(DATA.delta_tau));
 }
 

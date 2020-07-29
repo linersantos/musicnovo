@@ -44,7 +44,7 @@ int Evolve::EvolveIt(SCGrid &arena_prev, SCGrid &arena_current,
     int freezeout_flag          = DATA.doFreezeOut;
     int freezeout_lowtemp_flag  = DATA.doFreezeOut_lowtemp;
 
-    // Output information about the hydro parameters 
+    // Output information about the hydro parameters
     // in the format of a C header file
     //if (DATA.output_hydro_params_header || DATA.outputEvolutionData == 1)
     //    grid_info.Output_hydro_information_header();
@@ -255,17 +255,16 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
     const int ny = arena_current.nY();
 
     std::stringstream strs_name;
-    strs_name << "surface_eps_" << std::setprecision(4) << epsFO*hbarc
-              << "_" << thread_id << ".dat";
+    strs_name << "surface.dat";
     std::ofstream s_file;
     std::ios_base::openmode modes;
-    
+
     if (surface_in_binary) {
         modes=std::ios::out | std::ios::binary;
     } else {
         modes=std::ios::out;
     }
-    
+
     // Only append at the end of the file if it's not the first timestep
     // (that is, overwrite file at first timestep)
     if (tau != DATA.tau0+DATA.delta_tau) {
@@ -334,7 +333,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                                                 intersect=0;
 
             if (intersect==0) continue;
-                
+
             if (ix == 0 || ix >= nx - 2*fac_x
                     || iy == 0 || iy >= ny - 2*fac_y) {
                 music_message << "Freeze-out cell at the boundary! "
@@ -362,7 +361,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
             cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).epsilon;
             cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).epsilon;
 
-    
+
             // Now, the magic will happen in the Cornelius ...
             cornelius_ptr->find_surface_4d(cube);
 
@@ -433,7 +432,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).u[1];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).u[1];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).u[1];
-                const double ux_center = 
+                const double ux_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
@@ -454,7 +453,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).u[2];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).u[2];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).u[2];
-                const double uy_center = 
+                const double uy_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
@@ -475,13 +474,13 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).u[3];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).u[3];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).u[3];
-                const double ueta_center = 
+                const double ueta_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
                 // reconstruct u^tau from u^i
-                const double utau_center = sqrt(1. + ux_center*ux_center 
-                                   + uy_center*uy_center 
+                const double utau_center = sqrt(1. + ux_center*ux_center
+                                   + uy_center*uy_center
                                    + ueta_center*ueta_center);
 
                 // baryon density rho_b
@@ -501,10 +500,10 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).rhob;
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).rhob;
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).rhob;
-                const double rhob_center = 
+                const double rhob_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
-          
+
                 // baryon diffusion current q^tau
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).Wmunu[10];
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).Wmunu[10];
@@ -522,10 +521,10 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[10];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[10];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[10];
-                double qtau_center = 
+                double qtau_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
-          
+
                 // baryon diffusion current q^x
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).Wmunu[11];
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).Wmunu[11];
@@ -543,7 +542,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[11];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[11];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[11];
-                double qx_center = 
+                double qx_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
@@ -564,10 +563,10 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[12];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[12];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[12];
-                double qy_center = 
+                double qy_center =
                     Util::four_dimension_linear_interpolation(
                             lattice_spacing, x_fraction, cube);
-          
+
                 // baryon diffusion current q^eta
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).Wmunu[13];
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).Wmunu[13];
@@ -585,7 +584,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[13];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[13];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[13];
-                double qeta_center = 
+                double qeta_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
@@ -593,14 +592,14 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 double u_flow[4] = {utau_center, ux_center, uy_center, ueta_center};
                 double q_mu[4]   = {qtau_center, qx_center, qy_center, qeta_center};
                 double q_regulated[4] = {0.0, 0.0, 0.0, 0.0};
-                
+
                 regulate_qmu(u_flow, q_mu, q_regulated);
-                
+
                 qtau_center = q_regulated[0];
                 qx_center = q_regulated[1];
                 qy_center = q_regulated[2];
                 qeta_center = q_regulated[3];
-    
+
                 // bulk viscous pressure pi_b
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).pi_b;
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).pi_b;
@@ -618,7 +617,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).pi_b;
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).pi_b;
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).pi_b;
-                const double pi_b_center = 
+                const double pi_b_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
@@ -639,10 +638,10 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[0];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[0];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[0];
-                double Wtautau_center = 
+                double Wtautau_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
-      
+
                 // shear viscous tensor W^{\tau x}
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).Wmunu[1];
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).Wmunu[1];
@@ -660,7 +659,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[1];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[1];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[1];
-                double Wtaux_center = 
+                double Wtaux_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
@@ -683,7 +682,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[2];
                 double Wtauy_center = Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
-      
+
                 // shear viscous tensor W^{\tau \eta}
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).Wmunu[3];
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).Wmunu[3];
@@ -701,10 +700,10 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[3];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[3];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[3];
-                double Wtaueta_center = 
+                double Wtaueta_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
-      
+
                 // shear viscous tensor W^{xx}
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).Wmunu[4];
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).Wmunu[4];
@@ -722,7 +721,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[4];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[4];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[4];
-                double Wxx_center = 
+                double Wxx_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
@@ -743,7 +742,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[5];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[5];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[5];
-                double Wxy_center = 
+                double Wxy_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
@@ -764,10 +763,10 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[6];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[6];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[6];
-                double Wxeta_center = 
+                double Wxeta_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
-      
+
                 // shear viscous tensor W^{yy}
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).Wmunu[7];
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).Wmunu[7];
@@ -785,10 +784,10 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[7];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[7];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[7];
-                double Wyy_center = 
+                double Wyy_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
-      
+
                 // shear viscous tensor W^{y\eta}
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).Wmunu[8];
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).Wmunu[8];
@@ -806,10 +805,10 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[8];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[8];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[8];
-                double Wyeta_center = 
+                double Wyeta_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
-      
+
                 // shear viscous tensor W^{\eta\eta}
                 cube[0][0][0][0] = arena_freezeout(ix      , iy      , ieta        ).Wmunu[9];
                 cube[0][0][1][0] = arena_freezeout(ix      , iy+fac_y, ieta        ).Wmunu[9];
@@ -827,7 +826,7 @@ int Evolve::FindFreezeOutSurface_Cornelius_XY(double tau, int ieta,
                 cube[1][0][1][1] = arena_current  (ix      , iy+fac_y, ieta+fac_eta).Wmunu[9];
                 cube[1][1][0][1] = arena_current  (ix+fac_x, iy      , ieta+fac_eta).Wmunu[9];
                 cube[1][1][1][1] = arena_current  (ix+fac_x, iy+fac_y, ieta+fac_eta).Wmunu[9];
-                double Wetaeta_center = 
+                double Wetaeta_center =
                     Util::four_dimension_linear_interpolation(
                                 lattice_spacing, x_fraction, cube);
 
@@ -962,7 +961,7 @@ int Evolve::FreezeOut_equal_tau_Surface(double tau,
     // this function will be trigged if freezeout_lowtemp_flag == 1
     const int neta = arena_current.nEta();
     const int fac_eta = 1;
-   
+
     for (int i_freezesurf = 0; i_freezesurf < n_freeze_surf; i_freezesurf++) {
         double epsFO = epsFO_list[i_freezesurf]/hbarc;
         if (DATA.boost_invariant == 0) {
@@ -991,21 +990,19 @@ void Evolve::FreezeOut_equal_tau_Surface_XY(double tau, int ieta,
 
     std::stringstream strs_name;
     if (DATA.boost_invariant == 0) {
-        strs_name << "surface_eps_" << std::setprecision(4) << epsFO*hbarc
-                  << "_" << thread_id << ".dat";
+        strs_name << "surface.dat";
     } else {
-        strs_name << "surface_eps_" << std::setprecision(4) << epsFO*hbarc
-                  << ".dat";
+        strs_name << "surface.dat";
     }
     std::ofstream s_file;
     std::ios_base::openmode modes;
-    
+
     if (surface_in_binary) {
         modes=std::ios::out | std::ios::binary;
     } else {
         modes=std::ios::out;
     }
-    
+
     // Only append at the end of the file if it's not the first timestep
     // (that is, overwrite file at first timestep)
     if (tau != DATA.tau0+DATA.delta_tau) {
@@ -1017,14 +1014,14 @@ void Evolve::FreezeOut_equal_tau_Surface_XY(double tau, int ieta,
     const int fac_x   = DATA.fac_x;
     const int fac_y   = DATA.fac_y;
     const int fac_eta = 1;
-    
+
     const double DX   = fac_x*DATA.delta_x;
     const double DY   = fac_y*DATA.delta_y;
     const double DETA = fac_eta*DATA.delta_eta;
 
     double eta = (DATA.delta_eta)*ieta - (DATA.eta_size)/2.0;
     for (int ix = 0; ix < nx - fac_x; ix += fac_x) {
-        double x = ix*(DATA.delta_x) - (DATA.x_size/2.0); 
+        double x = ix*(DATA.delta_x) - (DATA.x_size/2.0);
         for (int iy = 0; iy < ny - fac_y; iy += fac_y) {
             double y = iy*(DATA.delta_y) - (DATA.y_size/2.0);
 
@@ -1046,8 +1043,8 @@ void Evolve::FreezeOut_equal_tau_Surface_XY(double tau, int ieta,
             const double uy_center   = arena_current(ix, iy, ieta).u[2];
             const double ueta_center = arena_current(ix, iy, ieta).u[3];  // u^eta/tau
             // reconstruct u^tau from u^i
-            const double utau_center = sqrt(1. + ux_center*ux_center 
-                                               + uy_center*uy_center 
+            const double utau_center = sqrt(1. + ux_center*ux_center
+                                               + uy_center*uy_center
                                                + ueta_center*ueta_center);
 
             // baryon density rho_b
@@ -1165,19 +1162,19 @@ void Evolve::FreezeOut_equal_tau_Surface_XY(double tau, int ieta,
                     s_file.write((char*) &(array[i]), sizeof(float));
                 }
             } else {
-                s_file << std::scientific << std::setprecision(10) 
-                       << tau_center     << " " << x_center          << " " 
-                       << y_center       << " " << eta_center        << " " 
-                       << FULLSU[0]      << " " << FULLSU[1]         << " " 
-                       << FULLSU[2]      << " " << FULLSU[3]         << " " 
-                       << utau_center    << " " << ux_center         << " " 
-                       << uy_center      << " " << ueta_center       << " " 
+                s_file << std::scientific << std::setprecision(10)
+                       << tau_center     << " " << x_center          << " "
+                       << y_center       << " " << eta_center        << " "
+                       << FULLSU[0]      << " " << FULLSU[1]         << " "
+                       << FULLSU[2]      << " " << FULLSU[3]         << " "
+                       << utau_center    << " " << ux_center         << " "
+                       << uy_center      << " " << ueta_center       << " "
                        << e_local        << " " << T_local           << " "
                        << muB_local      << " " << muS_local         << " "
-                       << muC_local      << " " << eps_plus_p_over_T << " " 
-                       << Wtautau_center << " " << Wtaux_center      << " " 
-                       << Wtauy_center   << " " << Wtaueta_center    << " " 
-                       << Wxx_center     << " " << Wxy_center        << " " 
+                       << muC_local      << " " << eps_plus_p_over_T << " "
+                       << Wtautau_center << " " << Wtaux_center      << " "
+                       << Wtauy_center   << " " << Wtaueta_center    << " "
+                       << Wxx_center     << " " << Wxy_center        << " "
                        << Wxeta_center   << " " << Wyy_center        << " "
                        << Wyeta_center   << " " << Wetaeta_center    << " " ;
                 if (DATA.turn_on_bulk)
@@ -1185,7 +1182,7 @@ void Evolve::FreezeOut_equal_tau_Surface_XY(double tau, int ieta,
                 if (DATA.turn_on_rhob)
                     s_file << rhob_center << " " ;
                 if (DATA.turn_on_diff)
-                    s_file << qtau_center << " " << qx_center << " " 
+                    s_file << qtau_center << " " << qx_center << " "
                            << qy_center << " " << qeta_center << " " ;
                 s_file << std::endl;
             }
@@ -1204,8 +1201,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
         double epsFO = epsFO_list[i_freezesurf]/hbarc;
 
         std::stringstream strs_name;
-        strs_name << "surface_eps_" << std::setprecision(4) << epsFO*hbarc
-                  << ".dat";
+        strs_name << "surface.dat";
 
         std::ofstream s_file;
         std::ios_base::openmode modes;
@@ -1263,7 +1259,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
             double x = ix*(DATA.delta_x) - (DATA.x_size/2.0);
             for (int iy=0; iy < ny - fac_y; iy += fac_y) {
                 double y = iy*(DATA.delta_y) - (DATA.y_size/2.0);
-               
+
                 // judge intersection (from Bjoern)
                 intersect=1;
                 if ((arena_current(ix+fac_x,iy+fac_y,0).epsilon-epsFO)
@@ -1295,13 +1291,13 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                 cube[1][0][1] = arena_current  (ix      , iy+fac_y, 0).epsilon;
                 cube[1][1][0] = arena_current  (ix+fac_x, iy      , 0).epsilon;
                 cube[1][1][1] = arena_current  (ix+fac_x, iy+fac_y, 0).epsilon;
-           
+
                 // Now, the magic will happen in the Cornelius ...
                 cornelius_ptr->find_surface_3d(cube);
 
-                // get positions of the freeze-out surface 
+                // get positions of the freeze-out surface
                 // and interpolating results
-                for (int isurf = 0; isurf < cornelius_ptr->get_Nelements(); 
+                for (int isurf = 0; isurf < cornelius_ptr->get_Nelements();
                      isurf++) {
                     // surface normal vector d^3 \sigma_\mu
                     for (int ii = 0; ii < dim; ii++)
@@ -1381,9 +1377,9 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double ueta_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-                
-                    const double utau_center = sqrt(1. + ux_center*ux_center 
-                                   + uy_center*uy_center 
+
+                    const double utau_center = sqrt(1. + ux_center*ux_center
+                                   + uy_center*uy_center
                                    + ueta_center*ueta_center);
 
                     // baryon density rho_b
@@ -1411,7 +1407,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double pi_b_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-               
+
                     // baryon diffusion current q^\tau
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[10];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[10];
@@ -1424,7 +1420,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double qtau_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-               
+
                     // baryon diffusion current q^x
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[11];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[11];
@@ -1437,7 +1433,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double qx_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-               
+
                     // baryon diffusion current q^y
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[12];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[12];
@@ -1450,7 +1446,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double qy_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-               
+
                     // baryon diffusion current q^eta
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[13];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[13];
@@ -1486,7 +1482,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double Wtautau_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-                  
+
                     // shear viscous tensor W^{\tau x}
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[1];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[1];
@@ -1512,7 +1508,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double Wtauy_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-                  
+
                     // shear viscous tensor W^{\tau \eta}
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[3];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[3];
@@ -1525,7 +1521,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double Wtaueta_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-                  
+
                     // shear viscous tensor W^{xx}
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[4];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[4];
@@ -1564,7 +1560,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double Wxeta_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-                  
+
                     // shear viscous tensor W^{yy}
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[7];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[7];
@@ -1577,7 +1573,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double Wyy_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-                  
+
                     // shear viscous tensor W^{yeta}
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[8];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[8];
@@ -1590,7 +1586,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                     double Wyeta_center = (
                         Util::three_dimension_linear_interpolation(
                                         lattice_spacing, x_fraction, cube));
-                  
+
                     // shear viscous tensor W^{\eta\eta}
                     cube[0][0][0] = arena_freezeout(ix      , iy      , 0).Wmunu[9];
                     cube[0][0][1] = arena_freezeout(ix      , iy+fac_y, 0).Wmunu[9];
@@ -1684,28 +1680,28 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
                             s_file.write((char*) &(array[i]), sizeof(float));
                         }
                     } else {
-                        s_file << std::scientific << std::setprecision(10) 
-                               << tau_center << " " << x_center << " " 
-                               << y_center << " " << eta_center << " " 
-                               << FULLSU[0] << " " << FULLSU[1] << " " 
-                               << FULLSU[2] << " " << FULLSU[3] << " " 
-                               << utau_center << " " << ux_center << " " 
-                               << uy_center << " " << ueta_center << " " 
-                               << epsFO << " " << TFO << " " << muB << " " 
+                        s_file << std::scientific << std::setprecision(10)
+                               << tau_center << " " << x_center << " "
+                               << y_center << " " << eta_center << " "
+                               << FULLSU[0] << " " << FULLSU[1] << " "
+                               << FULLSU[2] << " " << FULLSU[3] << " "
+                               << utau_center << " " << ux_center << " "
+                               << uy_center << " " << ueta_center << " "
+                               << epsFO << " " << TFO << " " << muB << " "
                                << muS_local << " " << muC_local << " "
-                               << eps_plus_p_over_T_FO << " " 
-                               << Wtautau_center << " " << Wtaux_center << " " 
-                               << Wtauy_center << " " << Wtaueta_center << " " 
-                               << Wxx_center << " " << Wxy_center << " " 
-                               << Wxeta_center << " " 
-                               << Wyy_center << " " << Wyeta_center << " " 
+                               << eps_plus_p_over_T_FO << " "
+                               << Wtautau_center << " " << Wtaux_center << " "
+                               << Wtauy_center << " " << Wtaueta_center << " "
+                               << Wxx_center << " " << Wxy_center << " "
+                               << Wxeta_center << " "
+                               << Wyy_center << " " << Wyeta_center << " "
                                << Wetaeta_center << " " ;
                         if(DATA.turn_on_bulk)   // 29th column
                             s_file << pi_b_center << " " ;
                         if(DATA.turn_on_rhob)   // 30th column
                             s_file << rhob_center << " " ;
                         if(DATA.turn_on_diff)   // 31-34th column
-                            s_file << qtau_center << " " << qx_center << " " 
+                            s_file << qtau_center << " " << qx_center << " "
                                    << qy_center << " " << qeta_center << " " ;
                         s_file << std::endl;
                     }
@@ -1728,7 +1724,7 @@ int Evolve::FindFreezeOutSurface_boostinvariant_Cornelius(
         if (intersections == 0)
             all_frozen[i_freezesurf] = 1;
     }
-   
+
     int all_frozen_flag = 1;
     for (int ii = 0; ii < n_freeze_surf; ii++) {
         all_frozen_flag *= all_frozen[ii];
@@ -1785,7 +1781,7 @@ void Evolve::initialize_freezeout_surface_info() {
         n_freeze_surf = 1;
         for (int isurf = 0; isurf < n_freeze_surf; isurf++) {
             epsFO_list.push_back(e_freeze);
-            music_message << "Freeze out at a constant temperature T = " 
+            music_message << "Freeze out at a constant temperature T = "
                           << DATA.TFO << " GeV, e_fo = "
                           << e_freeze << " GeV/fm^3";
             music_message.flush("info");
@@ -1806,13 +1802,13 @@ void Evolve::initialize_freezeout_surface_info() {
     } else if(freeze_eps_flag == 1) {
         // read in from a file
         std::string eps_freeze_list_filename = DATA.freeze_list_filename;
-        music_message << "read in freeze out surface information from " 
+        music_message << "read in freeze out surface information from "
                       << eps_freeze_list_filename;
         music_message.flush("info");
         std::ifstream freeze_list_file(eps_freeze_list_filename.c_str());
         if (!freeze_list_file) {
             music_message << "Evolve::initialize_freezeout_surface_info: "
-                          << "can not open freeze-out list file: " 
+                          << "can not open freeze-out list file: "
                           << eps_freeze_list_filename;
             music_message.flush("error");
             exit(1);
@@ -1822,18 +1818,18 @@ void Evolve::initialize_freezeout_surface_info() {
         double temp_epsFO, dummyd;
         getline(freeze_list_file, dummy);  // get rid of the comment
         while(1) {
-            freeze_list_file >> temp_epsFO >> dummyd >> dummyd 
-                             >> dummyd >> dummyd >> dummyd >> dummyd;  
-            if (!freeze_list_file.eof()) {    
-                epsFO_list.push_back(temp_epsFO);    
-                temp_n_surf++;   
+            freeze_list_file >> temp_epsFO >> dummyd >> dummyd
+                             >> dummyd >> dummyd >> dummyd >> dummyd;
+            if (!freeze_list_file.eof()) {
+                epsFO_list.push_back(temp_epsFO);
+                temp_n_surf++;
             } else {
                 break;
             }
         }
         freeze_list_file.close();
         n_freeze_surf = temp_n_surf;
-        music_message << "totally " << n_freeze_surf 
+        music_message << "totally " << n_freeze_surf
                       << " freeze-out surface will be generated ...";
         music_message.flush("info");
     } else {

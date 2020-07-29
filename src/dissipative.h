@@ -30,7 +30,7 @@ class Diss {
 
  public:
     Diss(const EOS &eosIn, const InitData &DATA_in);
-    void MakeWSource(const double tau,
+    void MakeWSource(const double tau,int alpha,
                      SCGrid &arena_current, SCGrid &arena_prev,
                      const int ix, const int iy, const int ieta,
                      TJbVec &dwmn);

@@ -224,6 +224,26 @@ typedef struct init_data {
     double dNdyptdpt_eta_min;
     double dNdyptdpt_eta_max;
 
+  // tolerances for copying spectra from already-calculated particles with similar mass and chemical potential
+    double MassTolerance;
+    double MuTolerance;
+    double a1_ecc;
+    double a2_ecc;
+    double a3_ecc;
+    double a4_ecc;
+    double a5_ecc;
+    double a6_ecc;
+    double a7_ecc;
+    double norm_ecc;
+    double rho0; //energy constant of glauber model
+  double exc2;
+  double exc3;
+  double exc4;
+  double exc5;
+  double exc6;
+
+  double e;
+
 } InitData;
 
 #endif  // SRC_DATA_H_

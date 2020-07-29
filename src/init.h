@@ -57,6 +57,10 @@ class Init {
     void initial_MCGlb_with_rhob         (SCGrid &arena_prev, SCGrid &arena_current);
     void initial_UMN_with_rhob           (SCGrid &arena_prev, SCGrid & arena_current);
     void initial_with_jetscape           (int ieta, SCGrid &arena_prev, SCGrid &arena_current);
+    void initial_distorted_Gaussian (SCGrid &arena_prev, SCGrid &arena_current);
+    void initial_distorted_Wood_Saxon (SCGrid &arena_prev, SCGrid &arena_current);
+    void initial_trento_XY               (int ieta, SCGrid &arena_prev, SCGrid &arena_current);
+
 
     void get_jetscape_preequilibrium_vectors(
         std::vector<double> e_in,
@@ -77,6 +81,9 @@ class Init {
     double eta_rhob_left_factor            (double eta);
     double eta_rhob_right_factor           (double eta);
     void   output_initial_density_profiles (SCGrid &arena);
+    void   output_2D_eccentricities (int ieta, SCGrid &arena);
+    void   saida ();
+    void   saida2 (int LINER);
 };
 
 #endif  // SRC_INIT_H_

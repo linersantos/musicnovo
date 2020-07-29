@@ -10,10 +10,8 @@
 #include<sys/stat.h>
 #include<iomanip>
 #include "./freeze.h"
-#include <complex>
 
 using namespace std;
-using Util::hbarc;
 
 // read in thermal spectra from file to then perform resonance decays with them
 // Must set verbose to 1 if you want particleMax to be set by this routine.
@@ -38,13 +36,12 @@ void Freeze::ReadSpectra_pseudo(InitData* DATA, int full, int verbose) {
     int count;
     count = 0;
     if (verbose) {
-      cout << " "<<ietamax;
         music_message << "NumberOfParticlesToInclude "
                       << DATA->NumberOfParticlesToInclude;
         music_message.flush("info");
     }
     // read particle information:
-    while (fscanf(p_file,"%d %lf %d %lf %lf %d %d ",
+    while (fscanf(p_file,"%d %lg %d %lg %lg %d %d ",
                   &number, &etamax, &ietamax, &ptmin, &ptmax,
                   &iptmax, &iphimax) == 7) {
         count++;
@@ -57,7 +54,7 @@ void Freeze::ReadSpectra_pseudo(InitData* DATA, int full, int verbose) {
         particleList[ip].npt = iptmax;
         particleList[ip].nphi = iphimax;
         particleList[ip].phimin = 0;
-        particleList[ip].phimax = 2*M_PI;
+        particleList[ip].phimax = 2*PI;
         particleList[ip].slope = 1;
         particleList[ip].ymax = etamax;
         deltaeta = 0.;
@@ -120,7 +117,7 @@ void Freeze::ReadSpectra_pseudo(InitData* DATA, int full, int verbose) {
     if (phiArray == NULL) {
         phiArray = new double[iphimax];
         for (int iphi = 0; iphi < iphimax; iphi++) {
-            phiArray[iphi] = iphi*2*M_PI/iphimax;
+            phiArray[iphi] = iphi*2*PI/iphimax;
         }
     }
     fclose(s_file);
@@ -148,7 +145,7 @@ void Freeze::ComputeParticleSpectrum_pseudo_improved(InitData *DATA,
                                     // (ipt goes from 0 to iptmax)
     int iphimax = DATA->phi_steps;  // number of points
                                     // (phi=2pi equal to phi=0)
-    double deltaphi = 2*M_PI/iphimax;
+    double deltaphi = 2*PI/iphimax;
 
     // Reuse rapidity variables (Need to reuse variable y
     // so resonance decay routine can be used as is.
@@ -186,7 +183,7 @@ void Freeze::ComputeParticleSpectrum_pseudo_improved(InitData *DATA,
 
     char *specString=new char[30];
     strcpy(specString, "yptphiSpectra");
-    strcat(specString, buf);
+//    strcat(specString, buf);
     strcat(specString, ".dat");
     char* s_name = specString;
     FILE *s_file;
@@ -219,6 +216,7 @@ void Freeze::ComputeParticleSpectrum_pseudo_improved(InitData *DATA,
         pt_array[ipt] = pt;
         particleList[j].pt[ipt] = pt;
     }
+    cout<<"pt min= "<<particleList[j].pt[0]<<endl; //17/12/2018
 
     double *bulk_deltaf_coeffs = new double[3];
     if (DATA_ptr->turn_on_bulk == 1 && DATA_ptr->include_deltaf_bulk == 1) {
@@ -525,7 +523,7 @@ void Freeze::ComputeParticleSpectrum_pseudo_improved(InitData *DATA,
                 }
             }
         }
-        double prefactor = deg/(pow(2.*M_PI,3.)*pow(hbarc,3.));
+        double prefactor = deg/(pow(2.*PI,3.)*pow(hbarc,3.));
         // store the final results
         for (int ipt = 0; ipt < iptmax; ipt++) {
             for (int iphi = 0; iphi < iphimax; iphi++) {
@@ -576,7 +574,7 @@ void Freeze::ComputeParticleSpectrum_pseudo_boost_invariant(
                                     // (ipt goes from 0 to iptmax)
     int iphimax = DATA->phi_steps;  // number of points
                                     // (phi=2pi equal to phi=0)
-    double deltaphi = 2*M_PI/iphimax;
+    double deltaphi = 2*PI/iphimax;
 
     // Reuse rapidity variables (Need to reuse variable y
     // so resonance decay routine can be used as is.
@@ -612,7 +610,8 @@ void Freeze::ComputeParticleSpectrum_pseudo_boost_invariant(
     string d_name = "particleInformation.dat";
     d_file = fopen(d_name.c_str(), "a");
 
-    string s_name = "yptphiSpectra0.dat";
+//    string s_name = "yptphiSpectra0.dat";
+    string s_name = "yptphiSpectra.dat";
     FILE *s_file;
     s_file = fopen(s_name.c_str(), "w");
 
@@ -850,7 +849,7 @@ void Freeze::ComputeParticleSpectrum_pseudo_boost_invariant(
             }
         }
     }
-    double prefactor = deg/(pow(2.*M_PI, 3.)*pow(hbarc, 3.));
+    double prefactor = deg/(pow(2.*PI, 3.)*pow(hbarc, 3.));
 
     for (int ieta = 0; ieta < ietamax; ieta++) {
         double eta = -etamax + ieta*deltaeta;
@@ -921,12 +920,19 @@ void Freeze::OutputFullParticleSpectrum_pseudo(InitData *DATA, int number,
 //! this function computes particle thermal spectra
 void Freeze::compute_thermal_spectra(int particleSpectrumNumber,
                                      InitData* DATA) {
-    double mass_tol = 1e-3;
-    double mu_tol = 1e-3;
+//    double mass_tol = 1e-1; //tolerance on relative mass
+    double mass_tol = DATA->MassTolerance;
+    cout << "MassTolerance = " << mass_tol << endl;
+//    double mu_tol = 1e-1;
+    double mu_tol = DATA->MuTolerance;
+    cout << "MuTolerance = " << mu_tol << endl;
+    int copyflag[319] = {0};
 
     // clean up
-    //system("rm yptphiSpectra.dat yptphiSpectra?.dat "
-      //     "yptphiSpectra??.dat particleInformation.dat 2> /dev/null");
+    remove("yptphiSpectra.dat");
+    remove("particleInformation.dat");
+//    system("rm yptphiSpectra.dat yptphiSpectra?.dat "
+//           "yptphiSpectra??.dat particleInformation.dat 2> /dev/null");
 
     ReadFreezeOutSurface(DATA);  // read freeze out surface
     if (particleSpectrumNumber == 0) {
@@ -941,13 +947,18 @@ void Freeze::compute_thermal_spectra(int particleSpectrumNumber,
             // Only calculate particles with unique mass
             for(int part = 1; part < i; part++) {
                 double mass_diff = fabs(particleList[i].mass
-                                        - particleList[part].mass);
-                double mu_diff = fabs(particleList[i].muAtFreezeOut
-                                      - particleList[part].muAtFreezeOut);
+                                        - particleList[part].mass)/particleList[i].mass;
+                double mu_diff = 0.0;
+		if(particleList[i].muAtFreezeOut != 0.0)
+		    mu_diff = fabs(particleList[i].muAtFreezeOut
+                                      - particleList[part].muAtFreezeOut)/particleList[i].muAtFreezeOut;
                 if (mass_diff < mass_tol && mu_diff < mu_tol
                     && (DATA->turn_on_rhob == 0
                         || particleList[i].baryon == particleList[part].baryon)
-                   ) {
+		    && copyflag[part] == 0
+		   )
+		{
+		    copyflag[i] = 1;
                     // here we assume zero mu_B
                     computespectrum = 0;
 
@@ -1018,9 +1029,9 @@ void Freeze::compute_thermal_spectra(int particleSpectrumNumber,
                     ComputeParticleSpectrum_pseudo_improved(DATA, number);
                 }
 
-                //system("cat yptphiSpectra?.dat >> yptphiSpectra.dat");
-                //system("cat yptphiSpectra??.dat >> yptphiSpectra.dat "
-                  //     "2> /dev/null");
+//                system("cat yptphiSpectra?.dat >> yptphiSpectra.dat");
+//                system("cat yptphiSpectra??.dat >> yptphiSpectra.dat "
+//                       "2> /dev/null");
             }
         }
     } else {
@@ -1039,9 +1050,9 @@ void Freeze::compute_thermal_spectra(int particleSpectrumNumber,
             ComputeParticleSpectrum_pseudo_improved(DATA, number);
         }
 
-        //system("cat yptphiSpectra?.dat >> yptphiSpectra.dat");
-        //system("cat yptphiSpectra??.dat >> yptphiSpectra.dat "
-          //     "2> /dev/null");
+//        system("cat yptphiSpectra?.dat >> yptphiSpectra.dat");
+//        system("cat yptphiSpectra??.dat >> yptphiSpectra.dat "
+//               "2> /dev/null");
     }
 }
 
@@ -1058,7 +1069,9 @@ void Freeze::perform_resonance_decays(InitData *DATA) {
 
     cal_reso_decays(particleMax, decayMax, bound);
 
-    //system("rm FyptphiSpectra.dat FparticleInformation.dat 2> /dev/null");
+//    system("rm FyptphiSpectra.dat FparticleInformation.dat 2> /dev/null");
+    remove("FyptphiSpectra");
+    remove("FparticleInformation.dat");
     for (int i = 1; i < particleMax; i++) {
         int number = particleList[i].number;
         int b = particleList[i].baryon;
@@ -1070,10 +1083,10 @@ void Freeze::compute_thermal_particle_spectra_and_vn(InitData* DATA) {
     // take tabulated spectra
     // and compute various observables and integrated quantities
     int status = mkdir("./outputs", 0755);
-    if (status != 0) {
-        music_message << "Can not create folder ./outputs ...";
-        music_message.flush("warning");
-    }
+  //  if (status != 0) {
+  //      music_message << "Can not create folder ./outputs ...";
+  //      music_message.flush("warning");
+  //  }
     ReadSpectra_pseudo(DATA, 0, 1);
 
     //Make sure the pion, kaon and proton spectra are available
@@ -1091,7 +1104,7 @@ void Freeze::compute_thermal_particle_spectra_and_vn(InitData* DATA) {
             if (id < particleMax) {
                 OutputDifferentialFlowAtMidrapidity(DATA, number, 0);
                 OutputDifferentialFlowNearMidrapidity(DATA, number, 0);
-                //OutputIntegratedFlow_vs_y(DATA, number, 0, 0.01, 3.0);
+//                OutputIntegratedFlow_vs_y(DATA, number, 0, 0.01, 3.0);
             }
         }
     }
@@ -1101,10 +1114,10 @@ void Freeze::compute_final_particle_spectra_and_vn(InitData* DATA) {
     // take tabulated post-decay spectra and
     // compute various observables and integrated quantities
     int status = mkdir("./outputs", 0755);   // output results folder
-    if (status != 0) {
-        music_message << "Can not create folder ./outputs ...";
-        music_message.flush("warning");
-    }
+    //if (status != 0) {
+      //  music_message << "Can not create folder ./outputs ...";
+        //music_message.flush("warning");
+    //}
     ReadSpectra_pseudo(DATA, 1, 1);  // read in particle spectra information
 
     if (DATA->NumberOfParticlesToInclude > 200) {
@@ -1115,31 +1128,30 @@ void Freeze::compute_final_particle_spectra_and_vn(InitData* DATA) {
             music_message.flush("warning");
         }
         // calculate spectra and vn for charged hadrons
-        //CMS
+	//CMS
         Output_charged_hadrons_eta_differential_spectra(DATA, 1, 0.3, 3.0);
         Output_charged_hadrons_pT_differential_spectra(DATA, 1, -2.5, 2.5);
         Output_charged_IntegratedFlow(DATA, 0.3, 3.0, -2.5, 2.5);
-        //ATLAS
-        //Output_charged_hadrons_eta_differential_spectra(DATA, 1, 0.5, 5.0);//26/11/2019
-        Output_charged_hadrons_eta_differential_spectra(DATA, 1, 0.5, 3.0);
-              Output_charged_hadrons_pT_differential_spectra(DATA, 1, -2.5, 2.5);
-              //Output_charged_IntegratedFlow(DATA, 0.5, 5.0, -2.5, 2.5);
-              Output_charged_IntegratedFlow(DATA, 0.5, 3.0, -2.5, 2.5);
-        //ALICE
-        Output_charged_hadrons_eta_differential_spectra(DATA, 1, 0.2, 3.0);
-              Output_charged_hadrons_pT_differential_spectra(DATA, 1, -0.8, 0.8);
-              Output_charged_IntegratedFlow(DATA, 0.2, 3.0, -0.8, 0.8);
-
-        // for PHENIX pT corte
-        //Output_charged_IntegratedFlow(DATA, 0.15, 3.0, -0.5, 0.5);
+	//ATLAS
+	//Output_charged_hadrons_eta_differential_spectra(DATA, 1, 0.5, 5.0);//26/11/2019
+	Output_charged_hadrons_eta_differential_spectra(DATA, 1, 0.5, 3.0);
+        Output_charged_hadrons_pT_differential_spectra(DATA, 1, -2.5, 2.5);
+        //Output_charged_IntegratedFlow(DATA, 0.5, 5.0, -2.5, 2.5);
+        Output_charged_IntegratedFlow(DATA, 0.5, 3.0, -2.5, 2.5);
+	//ALICE
+	Output_charged_hadrons_eta_differential_spectra(DATA, 1, 0.2, 3.0);
+        Output_charged_hadrons_pT_differential_spectra(DATA, 1, -0.8, 0.8);
+        Output_charged_IntegratedFlow(DATA, 0.2, 3.0, -0.8, 0.8);
+        // for PHENIX pT cut
+        //Output_charged_IntegratedFlow(DATA, 0.3, 3.0, -2.5, 2.5);
         // for ALICE or STAR pT cut
-        //Output_charged_IntegratedFlow(DATA, 0.2, 3.0, -0.5, 0.5);
+        //Output_charged_IntegratedFlow(DATA, 0.3, 3.0, -2.5, 2.5);
         // for CMS pT cut
-        //Output_charged_IntegratedFlow(DATA, 0.3, 3.0, -0.5, 0.5);
+        //Output_charged_IntegratedFlow(DATA, 0.3, 3.0, -2.5, 2.5);
 
-        //Output_charged_IntegratedFlow(DATA, 0.4, 3.0, -0.5, 0.5);
+        //Output_charged_IntegratedFlow(DATA, 0.3, 3.0, -2.5, 2.5);
         // for ATLAS pT cut
-        //Output_charged_IntegratedFlow(DATA, 0.5, 3.0, -0.5, 0.5);
+        //Output_charged_IntegratedFlow(DATA, 0.3, 3.0, -2.5, 2.5);
     }
 
     if (particleMax < 21) {
@@ -1157,7 +1169,7 @@ void Freeze::compute_final_particle_spectra_and_vn(InitData* DATA) {
             if (id < particleMax) {
                 OutputDifferentialFlowAtMidrapidity(DATA, number, 1);
                 OutputDifferentialFlowNearMidrapidity(DATA, number, 1);
-                //OutputIntegratedFlow_vs_y(DATA, number, 1, 0.01, 3.0);
+//                OutputIntegratedFlow_vs_y(DATA, number, 1, 0.01, 3.0);
             }
         }
     }
@@ -1173,17 +1185,25 @@ void Freeze::CooperFrye_pseudo(int particleSpectrumNumber, int mode,
     if (mode == 3 || mode == 1) {  // compute thermal spectra
         compute_thermal_spectra(particleSpectrumNumber, DATA);
     }
-    if (mode==4 || mode==1) { //  do resonance decays
-        perform_resonance_decays(DATA);
-    }
     if (mode==13 || mode == 3 || mode == 1) {
         compute_thermal_particle_spectra_and_vn(DATA);
+
         double *vn_temp = new double [2];
        	double pT_min = 0.3;
        	double pT_max = 3.0;
        	double eta_min = 0.0;
        	double eta_max = 0.0;
         get_vn(DATA, 211,pT_min, pT_max, 0, eta_min, eta_max, 2);
+//        get_vn(DATA, pT_min, pT_max, 0, eta_min, eta_max, iorder, vn_temp);
+//        double *vn_temp = new double [2];
+//	double pT_min = 0.1;
+//	double pT_max = 3.0;
+//	double eta_min = 0.0;
+//	double eta_max = 0.0;
+//outfile4.open("excE.dat",ios::out|ios::app);
+//outfile4<<" " << abs(-W22/W02) << " " << arg(-W22/W02) <<endl;
+//outfile4.close();
+        //get_vn_ch(DATA, pT_min, pT_max, 0, eta_min, eta_max, 2, vn_temp);
         ofstream outfilevnch1;
 
         outfilevnch1.open("vn.dat",ios::out|ios::app);
@@ -1194,15 +1214,47 @@ void Freeze::CooperFrye_pseudo(int particleSpectrumNumber, int mode,
       outfilevnch1 << endl;
         outfilevnch1.close();
 	cout << "v2 = " <<  get_vn(DATA, 211,pT_min, pT_max, 0, eta_min, eta_max, 2) << endl;
+//        get_vn_ch(DATA, pT_min, pT_max, 0, eta_min, eta_max, 3, vn_temp);
+//	cout << "v3 = " << sqrt(vn_temp[0]*vn_temp[0] + vn_temp[1]*vn_temp[1]) << endl;
+//        get_vn_ch(DATA, pT_min, pT_max, 0, eta_min, eta_max, 4, vn_temp);
+//	cout << "v4 = " << sqrt(vn_temp[0]*vn_temp[0] + vn_temp[1]*vn_temp[1]) << endl;
+//        get_vn_ch(DATA, pT_min, pT_max, 0, eta_min, eta_max, 5, vn_temp);
+//	cout << "v5 = " << sqrt(vn_temp[0]*vn_temp[0] + vn_temp[1]*vn_temp[1]) << endl;
+//        get_vn_ch(DATA, pT_min, pT_max, 0, eta_min, eta_max, 6, vn_temp);
+//	cout << "v6 = " << sqrt(vn_temp[0]*vn_temp[0] + vn_temp[1]*vn_temp[1]) << endl;
+//        get_vn_ch(DATA, pT_min, pT_max, 0, eta_min, eta_max, 7, vn_temp);
+//	cout << "v7 = " << sqrt(vn_temp[0]*vn_temp[0] + vn_temp[1]*vn_temp[1]) << endl;
     }
+  //  if(DATA->NumberOfParticlesToInclude > 2){
     if (mode==4 || mode==1) { //  do resonance decays
         perform_resonance_decays(DATA);
     }
     if (mode==14 || mode == 4 || mode == 1) {
-      cout << "After resonance decay:\n";
-      compute_final_particle_spectra_and_vn(DATA);
+	cout << "After resonance decay:\n";
+        //double *vn_tempF = new double [2];
+//double pT_minF = 0.3;
+//double pT_maxF = 3.0;
+//double eta_minF = -2.5;
+//double eta_maxF = 2.5;
+  //      get_vn_ch(DATA, pT_minF, pT_maxF, 0, eta_minF, eta_maxF, 2, vn_tempF);
+      //  ofstream outfilevnch2;
+        //outfilevnch2.open("vnch_2.dat",ios::out|ios::app);
+        //outfilevnch2<<" " << get_vn_ch(DATA, pT_minF, pT_maxF, 0, eta_minF, eta_maxF, 2, vn_tempF) << endl;
+        //outfilevnch2.close();
+	//cout << "v2 = " << sqrt(vn_tempF[0]*vn_tempF[0] + vn_tempF[1]*vn_tempF[1]) << endl;
+//        get_vn_ch(DATA, pT_minF, pT_maxF, 0, eta_minF, eta_maxF, 3, vn_tempF);
+//	cout << "v3 = " << sqrt(vn_tempF[0]*vn_tempF[0] + vn_tempF[1]*vn_tempF[1]) << endl;
+//        get_vn_ch(DATA, pT_minF, pT_maxF, 0, eta_minF, eta_maxF, 4, vn_tempF);
+//	cout << "v4 = " << sqrt(vn_tempF[0]*vn_tempF[0] + vn_tempF[1]*vn_tempF[1]) << endl;
+//        get_vn_ch(DATA, pT_minF, pT_maxF, 0, eta_minF, eta_maxF, 5, vn_tempF);
+//	cout << "v5 = " << sqrt(vn_tempF[0]*vn_tempF[0] + vn_tempF[1]*vn_tempF[1]) << endl;
+//        get_vn_ch(DATA, pT_minF, pT_maxF, 0, eta_minF, eta_maxF, 6, vn_tempF);
+//	cout << "v6 = " << sqrt(vn_tempF[0]*vn_tempF[0] + vn_tempF[1]*vn_tempF[1]) << endl;
+//        get_vn_ch(DATA, pT_minF, pT_maxF, 0, eta_minF, eta_maxF, 7, vn_tempF);
+//	cout << "v7 = " << sqrt(vn_tempF[0]*vn_tempF[0] + vn_tempF[1]*vn_tempF[1]) << endl;
+        compute_final_particle_spectra_and_vn(DATA);
     }
-
+//}
     // clean up
     delete[] partid;
     free(particleList);
@@ -1281,7 +1333,7 @@ void Freeze::rapidity_integrated_flow(
             testmax = Rap(particleList[j].y[neta-1], particleList[j].pt[0], m);
     }
     if (maxrap > testmax) {
-        music_message << "Error: called out of range rapidity in rap_integrated_flow, "
+      music_message << "Error: called out of range rapidity in rap_integrated_flow, "
              << maxrap << " > maximum " << testmax;
         music_message.flush("error");
         exit(1);
@@ -1350,10 +1402,10 @@ void Freeze::rapidity_integrated_flow(
                 dNdp = gsl_spline_eval(spline, maxrap, acc);
             }
 
-            double phi = iphi*2*M_PI/nphi;
+            double phi = iphi*2*PI/nphi;
             for (int i = 0; i < nharmonics; i++) {
-                intvn[ipt][i][0] += cos(i*phi)*dNdp*2*M_PI/nphi;
-                intvn[ipt][i][1] += sin(i*phi)*dNdp*2*M_PI/nphi;
+                intvn[ipt][i][0] += cos(i*phi)*dNdp*2*PI/nphi;
+                intvn[ipt][i][1] += sin(i*phi)*dNdp*2*PI/nphi;
             }
             gsl_spline_free (spline);
             gsl_interp_accel_free (acc);
@@ -1382,7 +1434,7 @@ void Freeze::pt_and_rapidity_integrated_flow(InitData *DATA, int number,
         double vn[nharmonics][2]) {
     int j = partid[MHALF+number];
     int npt = particleList[j].npt;
-
+    //music_message << " "<<j;
     if (minpt < particleList[j].pt[0]) {
         music_message << "Error: called out of range pt in "
              << "pt_and_rapidity_integrated_flow, "
@@ -1393,7 +1445,9 @@ void Freeze::pt_and_rapidity_integrated_flow(InitData *DATA, int number,
     if (maxpt > particleList[j].pt[npt-1]) {
         music_message << "Error: called out of range pt in "
              << "pt_and_rapidity_integrated_flow, "
-             << maxpt << " > maximum " << particleList[j].pt[npt-1];
+             << maxpt << " > maximum " << particleList[j].pt[npt-1]
+             << "maxrap = "<<maxrap<<"minrap = "<<minrap<<"vn[nharmonics[2]="
+             <<vn[nharmonics]<<"j= "<<j;
         music_message.flush("error");
         exit(1);
     }
@@ -1494,11 +1548,11 @@ void Freeze::OutputDifferentialFlowAtMidrapidity(
 
     outfilevn << "#pt  dN/ptdYdptdphi  v1cos  v1sin  v2cos  v2sin  "
               << "v3cos  v3sin  v4cos  v4sin  v5cos  v5sin  v6cos  v6sin  "
-              << "v7cos  v7sin" << endl;
+              << "v7cos  v7sin    v1    v2    v3    v4    v5    v6    v7" << endl;
 
     outfilevn2 << "#pt  dN/ptdYdptdphi  v1cos  v1sin  v2cos  v2sin  "
                << "v3cos  v3sin  v4cos  v4sin  v5cos  v5sin  v6cos  v6sin  "
-               << "v7cos  v7sin" << endl;
+               << "v7cos  v7sin    v1    v2    v3    v4    v5    v6    v7" << endl;
 
     double vn[nharmonics][2];
 
@@ -1577,11 +1631,11 @@ void Freeze::OutputDifferentialFlowNearMidrapidity(
     //Set the format of the output
     outfilevn << "#pt  dN/ptdYdptdphi  v1cos  v1sin  v2cos  v2sin  "
               << "v3cos  v3sin  v4cos  v4sin  v5cos  v5sin  v6cos  v6sin  "
-              << "v7cos  v7sin" << endl;   // in rapidity
+              << "v7cos  v7sin    v1    v2    v3    v4    v5    v6    v7" << endl;   // in rapidity
 
     outfilevn2 << "#pt  dN/ptdYdptdphi  v1cos  v1sin  v2cos  v2sin  "
                << "v3cos  v3sin  v4cos  v4sin  v5cos  v5sin  v6cos  v6sin  "
-               << "v7cos  v7sin" << endl;  // in pseudo-rapidity
+               << "v7cos  v7sin    v1    v2    v3    v4    v5    v6    v7" << endl;  // in pseudo-rapidity
 
     double vn[nharmonics][2];
 
@@ -1655,9 +1709,9 @@ void Freeze::OutputIntegratedFlow_vs_y(
 
     // header of the files
     outfilevn << "#y  dN/dy  v1cos  v1sin  v2cos  v2sin  v3cos  v3sin  "
-              << "v4cos  v4sin  v5cos  v5sin  v6cos  v6sin  v7cos  v7sin\n";
+              << "v4cos  v4sin  v5cos  v5sin  v6cos  v6sin  v7cos  v7sin    v1    v2    v3    v4    v5    v6    v7\n";
     outfilevn2 << "#eta  dN/deta  v1cos  v1sin  v2cos  v2sin  v3cos  v3sin  "
-               << "v4cos  v4sin  v5cos  v5sin  v6cos  v6sin  v7cos  v7sin\n";
+               << "v4cos  v4sin  v5cos  v5sin  v6cos  v6sin  v7cos  v7sin    v1    v2    v3    v4    v5    v6    v7\n";
 
     double vn[nharmonics][2];
 
@@ -1740,7 +1794,7 @@ void Freeze::Output_charged_IntegratedFlow(
         outfile << vn_temp[0] << "  " << vn_temp[1] << "  " << sqrt(pow(vn_temp[0],2)+pow(vn_temp[1],2)) << "  ";
         delete [] vn_temp;
     }
-    outfile << shear << " "<< exc2 << " " << exc3 << " " << exc4 << " " << exc5 << " " <<endl;
+    outfile << shear << " "<< exc2 << " " << exc3 << " " << exc4 << " " << exc5 << " " <<endl;   
     outfile.close();
 }
 

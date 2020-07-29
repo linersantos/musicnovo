@@ -272,7 +272,7 @@ double EOS_base::get_s2e_finite_rhob(double s, double rhob) const {
 
 
 std::string EOS_base::get_hydro_env_path() const {
-    const char *EOSPATH = "HYDROPROGRAMPATH";
+    const char *EOSPATH = "HYDROPROGRAMPATH2";
     char *pre_envPath = getenv(EOSPATH);
     std::string envPath;
     if (pre_envPath == 0) {
