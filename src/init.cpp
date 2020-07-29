@@ -32,9 +32,7 @@ Init::Init(const EOS &eosIn, InitData &DATA_in,
     hydro_source_terms_ptr = hydro_source_ptr_in;
 }
 
-void Init::saida(){
-cout <<" LINER QUE FEZ"<<endl;
-}
+
 void Init::InitArena(SCGrid &arena_prev, SCGrid &arena_current,
                      SCGrid &arena_future) {
     print_num_of_threads();
@@ -197,7 +195,7 @@ void Init::InitTJb(SCGrid &arena_prev, SCGrid &arena_current) {
    else if (DATA.Initial_profile == 31) {
        music_message.info(" Deformed Wood_Saxon initial condition");
    initial_distorted_Wood_Saxon(arena_prev, arena_current);
-   //saida();
+   
    }
 
     else if (DATA.Initial_profile == 8) {
@@ -264,7 +262,7 @@ void Init::InitTJb(SCGrid &arena_prev, SCGrid &arena_current) {
         initial_UMN_with_rhob(arena_prev, arena_current);
     }
     //music_message.info("initial distribution done.");
-    saida();
+    
     output_2D_eccentricities(0, arena_current);
     music_message.info("initial distribution done.");
 }
