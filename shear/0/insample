@@ -3,8 +3,8 @@ mode 1
 reset_dtau_use_CFL_condition 0
 
 
-Initial_profile 12
-Initial_Distribution_input_filename /home/liner/doutorado/cluster/renomeados-0-002/0.dat
+Initial_profile 31
+
 
 
 Target Pb
@@ -21,7 +21,7 @@ EOS_to_use 2
 epsilon_freeze 0.18
 Viscosity_Flag_Yes_1_No_0 1
 Include_Shear_Visc_Yes_1_No_0 1
-Shear_to_S_ratio 0.03
+Shear_to_S_ratio 00
 
 freeze_surface_in_binary 0
 Delta_Tau 0.1

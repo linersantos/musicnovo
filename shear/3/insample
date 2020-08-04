@@ -3,8 +3,8 @@ mode 1
 reset_dtau_use_CFL_condition 0
 
 
-Initial_profile 12
-Initial_Distribution_input_filename /home/liner/doutorado/cluster/renomeados-0-002/0.dat
+Initial_profile 31
+
 
 
 Target Pb
