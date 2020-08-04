@@ -242,6 +242,7 @@ typedef struct init_data {
   double exc5;
   double exc6;
 
+  double impact_parameter;
   double e;
 
 } InitData;

@@ -470,6 +470,13 @@ InitData read_in_parameters(std::string input_file) {
 
     // max_pt:
     // spectra calculated from min_pt to this transverse momentum in GeV
+
+    double tempimpact_parameter   = 0.0;
+    tempinput = Util::StringFind4(input_file, "impact_parameter");
+    if (tempinput != "empty")
+        istringstream(tempinput) >> tempimpact_parameter;
+    parameter_list.impact_parameter = tempimpact_parameter;
+
     double tempmax_pt   = 3.0;
     tempinput = Util::StringFind4(input_file, "max_pt");
     if (tempinput != "empty")

@@ -820,19 +820,18 @@ void Init::initial_distorted_Wood_Saxon(SCGrid &arena_prev,
 	// initial condition is a 2D Gaussian in the transverse plane, deformed to obtain an arbitrary anisotropy
     const int nx = arena_current.nX();
     const int ny = arena_current.nY();
-    double a1 = DATA.a1_ecc;
-    double a2 = DATA.a2_ecc;
-    double a3 = DATA.a3_ecc;
-    double a4 = DATA.a4_ecc;
-    double a5 = DATA.a5_ecc;
-    double a6 = DATA.a6_ecc;
-    double a7 = DATA.a7_ecc;
+    double a1 = DATA.a1_ecc*2;
+    double a2 = DATA.a2_ecc*2;
+    double a3 = DATA.a3_ecc*2;
+    double a4 = DATA.a4_ecc*2;
+    double a5 = DATA.a5_ecc*2;
+    double a6 = DATA.a6_ecc*2;
+    double a7 = DATA.a7_ecc*2;
     double N = DATA.norm_ecc;
-cout<<" " <<a2 <<endl;
+
     double u[4] = {1.0, 0.0, 0.0, 0.0};
     for (int ix = 0; ix < nx; ix++) {
 	double x = DATA.delta_x*(ix*2.0 - nx)/2.0;
-  //cout<<" "<<x;
         for (int iy = 0; iy < ny; iy++) {
 	    double y = DATA.delta_y*(iy*2.0 - ny)/2.0;
             for (int ieta = 0; ieta < arena_current.nEta(); ieta++) {
@@ -840,13 +839,12 @@ cout<<" " <<a2 <<endl;
     //double a = DATA.a_ecc;
 		double phi = atan2(y,x);
 		int nharmonics = 7; //number of harmonics to include in deformation
-		double ecc[7] = {a1,a2,a3,a4,a5,a6,a7};
-		double psi[7] = {0,0,0,0,0,0,0};
+		double ecc[nharmonics] = {a1,a2,a3,a4,a5,a6,a7};
+		double psi[nharmonics] = {0,0,0,0,0,0,0};
 		//double r2 = x*x+y*y;
 		double stretch = 1.0;
 		for(int n = 1; n <= nharmonics; n++) {
 			stretch += ecc[n-1]*cos(n*phi - n*psi[n-1]);
-      //cout<<"a2 "<<ecc[1];
 		}
 
     double sum1;
@@ -856,65 +854,45 @@ cout<<" " <<a2 <<endl;
     double R_0 = 6.62;
     double chi = 0.546;
     int m = 15;
-    lower=-m;//lower limit of integral
-    upper=m;//upper limit of integral
-    int n=100;//Number of steps 7/10/2019
-    h = (upper-lower)/(n-1);//length of each step
     double rho0 = DATA.rho0;
     double b = DATA.impact_parameter;
-
-    //for(int i = 1;i<=100;i+=1){ //number of steps
-    //h = (upper-lower)/(n-1);//length of each step
+    lower=-m;//lower limit of integral
+    upper=m;//upper limit of integral
+    for(int n = m;n<=150;n+=15){ //number of steps
+    h = (upper-lower)/(n-1);//length of each step
     z=lower;
-      sum = 0;
+      sum1 = 0;
+      sum2 = 0;
       //x=0.2*(ix*2.0-nx)/2.0;
       //for(iy=0;iy<ny;iy++){
         //y=0.2*(iy*2.0-nx)/2.0;
         for(int i=0;i<n;i++){
-        sum = sum + rho0/(1+exp((sqrt((pow(x,2)+pow(y,2))*stretch+pow(z,2))-R_0)/chi)) +
-        rho0/(1+exp((sqrt((pow(x,2)+pow(y,2))*stretch+pow((z+h),2))-R_0)/chi));
-        //sum = sum + rho0/(1+exp((sqrt((pow(x,2)+pow(y,2))+pow(z,2))-R_0)/chi)) +
-        //rho0/(1+exp((sqrt((pow(x,2)+pow(y,2))+pow((z+h),2))-R_0)/chi));
+        sum1 = sum1 + rho0/(1+exp((sqrt((pow((x+b/2),2)+pow(y,2))*stretch+pow(z,2))-R_0)/chi)) + rho0/(1+exp((sqrt((pow((x+b/2),2)+pow(y,2))*stretch+pow((z+h),2))-R_0)/chi));
+        sum2 = sum2 + rho0/(1+exp((sqrt((pow((x-b/2),2)+pow(y,2))*stretch+pow(z,2))-R_0)/chi)) + rho0/(1+exp((sqrt((pow((x-b/2),2)+pow(y,2))*stretch+pow((z+h),2))-R_0)/chi));
+
         z=z+h;
       }
+    }
+        sum1 = sum1*(h/2.0);
+        sum2 = sum2*(h/2.0);
+        double E = sum1*sum2;
 
-    //}
-        sum = sum*(h/2.0);
-        double E = sum*sum;
-        somaE += E;
-//if(y==0){
-  //      cout<< " "<<x<<" "<<y<<" "<<E<<" "<<stretch << endl;
-//}
-ofstream IC1;
-IC1.open("energia.dat", ios::out|ios::app);
-IC1 << x << " " << y << " " << E << " " << endl;
-IC1.close();
-        //printf("%lg %lg %lg %lg %d %lg %lg \n",a,b,x,y,n,sum,E);
-        //fprintf(arq1,"%lg %lg %lg %lg %d %lg %lg\n",a,b,x,y,n,sum,E);
-
-    //}
 
 
     //fclose(arq1);
 
-		double epsilon = N*E;
-    double rhob = 0.0;
-    //double epsilon = N*E*stretch;
-		epsilon = max(epsilon, 1e-18);
+		double epsilon = N*sum1*sum2;
+    ofstream IC1;
+    IC1.open("energia.dat", ios::out|ios::app);
+    IC1 << x << " " << y << " " << epsilon << " " << endl;
+    IC1.close();
+		epsilon = max(epsilon, 1e-11);
             	arena_current(ix, iy, ieta).epsilon = epsilon;
-              double entropy = eos.get_entropy(epsilon, rhob);
-              //arena_current(ix, iy, ieta).entropy = entropy;
-
-
-    somaeps += epsilon;
-
-
-
 //            	arena_current(ix, iy, ieta).rhob = 0.0;
 //            	Can also include an initial transverse flow.  Choose the flow vector to always be in the radial direction, but with a magnitude obtained from a derivative of the deformed Gaussian above.
 
-		double eccU[7] = {0,0.0,0,0,0,0,0};
-		double psiU[7] = {0,0,0,0,0,0,0};
+		double eccU[nharmonics] = {0,0.0,0,0,0,0,0};
+		double psiU[nharmonics] = {0,0,0,0,0,0,0};
 		double stretchU = 1.0;
 		for(int n = 0; n < nharmonics; n++) {
 			stretchU += eccU[n]*cos(n*phi - n*psiU[n]);
@@ -937,13 +915,7 @@ IC1.close();
 	    }
         }
       }
-cout<< "somaeps is "<<somaeps<<" "<<somaE<<endl;
-ofstream IC2;
-IC2.open("total.dat", ios::out|ios::app);
-IC2 << somaE << " " << somaeps  << " "<< endl;
-IC2.close();
-
-}
+    }
 //music_message.info("liner");
 
 void Init::initial_distorted_Gaussian(SCGrid &arena_prev,
